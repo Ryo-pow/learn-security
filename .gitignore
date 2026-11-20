@@ -1,0 +1,25 @@
+# macOS が自動で作るファイル
+.DS_Store
+._*
+
+# Windows が自動で作るファイル
+Thumbs.db
+desktop.ini
+
+# エディタの個人設定
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node.js（今は使っていないが、npm を使い始めたとき用）
+node_modules/
+npm-debug.log*
+
+# 環境変数・秘密情報（パスワードやキーを書いたファイルは上げない）
+.env
+.env.*
+
+# ログ・一時ファイル
+*.log
+tmp/
