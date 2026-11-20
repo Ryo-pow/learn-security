@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>情報まもりランド ― 情報漏えい体験ゲーム（ローカル版）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="client/css/style.css">
+</head>
+<body>
+<canvas id="confetti" hidden></canvas>
+<div class="wrap">
+  <div class="topline" style="display:flex;justify-content:space-between;align-items:center">
+    <span class="localbadge">🔒 通信はこのPCの中だけ</span>
+    <button class="back" id="homeBtn" type="button" hidden>← ホームへ</button>
+  </div>
+
+  <!-- ===== ホーム ===== -->
+  <section id="scHome" class="hero">
+    <div class="badge">体験ゲーム ・ ローカル限定</div>
+    <div class="mascot">🛡️</div>
+    <h1>情報まもりランド</h1>
+    <p class="sub">遊びながら「情報が漏れるしくみ」と「守り方」が分かる体験ゲーム。むずかしい言葉は、いつでもタップして確認できます。</p>
+    <div class="guide"><span class="hand">👇</span><span>遊びたいゲームを<b>タップ</b>してね（はじめての人は①がおすすめ）</span></div>
+    <button class="gamecard" id="toQuest" type="button">
+      <div class="ico">🕵️</div>
+      <div><h3>ゲーム① 情報まもりクエスト</h3><p>予想して、実際にやってみて、守り方を知る4つの事件。1人で遊べます。</p></div>
+      <div class="go">はじめる ▶</div>
+    </button>
+    <button class="gamecard" id="toCard" type="button">
+      <div class="ico">🃏</div>
+      <div><h3>ゲーム② のぞき見チャレンジ</h3><p>2台でつないで対戦。画面に裏向きのカードが“のぞかれる”のを体験。</p></div>
+      <div class="go">はじめる ▶</div>
+    </button>
+    <button class="minibtn" id="toGloss" type="button">📖 用語集をひらく</button>
+    <div class="fakebadge">⚠ 出てくる会員データは全部ダミー。実在の人物とは無関係です</div>
+  </section>
+
+  <!-- ===== 用語集 ===== -->
+  <section id="scGlossary" class="panel" hidden>
+    <button class="back" type="button" data-home>← ホームへ</button>
+    <div><div class="kicker">用語集</div><h2>むずかしい言葉を、やさしく</h2></div>
+    <p class="lead">ゲーム中は、青い下線つきの言葉を<b>タップ</b>するとその場で説明が出ます。ここでは全部まとめて読めます。</p>
+    <div class="glist" id="glist"></div>
+  </section>
+
+  <!-- ===== ゲーム①：登録 ===== -->
+  <section id="scJoin" class="panel" hidden>
+    <button class="back" type="button" data-home>← ホームへ</button>
+    <div><div class="kicker">ゲーム① ・ 準備</div><h2>この架空サイトに登録しよう</h2></div>
+    <div class="point">💡 このゲームの進め方：各事件は <b>① 予想する</b> → <b>② 使う人になって実際にやってみる</b> → <b>③ まとめ</b> の順に進みます。まとめは <b style="color:var(--blue)">👤 使う人の目線（自分にできること）</b> と <b style="color:var(--amber)">🛠 作る人の目線（直し方）</b> を切り替えて読めます。</div>
+    <p class="lead">まずは、あなたが“その会員サイトを使う人”になって登録します。このアカウントがこのあとどうなるか、見ものです。<br><b>本物のパスワードは絶対に入れないでください</b>（練習用の箱庭で、入力はこのPCの中だけに保存されます）。</p>
+    <div class="guide"><span class="hand">👇</span><span>① ニックネーム → ② パスワード を入れて、③「登録する」を押してね</span></div>
+    <label class="fld"><span><b class="stepno">①</b> ニックネーム</span><input class="ti" id="nick" maxlength="16" placeholder="例：みかん" autocomplete="off"></label>
+    <label class="fld"><span><b class="stepno">②</b> パスワード（架空でOK・下の例から選んでもOK）</span><input class="ti mono" id="pw" maxlength="32" placeholder="例：password123" autocomplete="off"></label>
+    <div class="chips" id="pwChips"></div>
+    <button class="btn block" id="joinBtn" type="button" disabled>③ この内容で登録する</button>
+    <p class="note" id="joinHint" style="text-align:center;margin:-6px 0 0">①と②を入れると、③が押せるようになります</p>
+    <div class="err" id="joinErr" hidden></div>
+  </section>
+
+  <!-- ===== ゲーム①：HUD＋本体＋結果 ===== -->
+  <div class="hud" id="hud" hidden>
+    <div class="prog"><small id="progLabel">事件 1 / 4</small><div class="bar"><i id="progBar" style="width:0%"></i></div></div>
+    <div class="score"><b id="scoreVal">0</b><small>まもりポイント</small></div>
+  </div>
+  <section id="scMission" class="panel" hidden></section>
+
+  <section id="scResult" class="panel" hidden>
+    <div class="result">
+      <div class="medal" id="medal">🛡️</div>
+      <div class="kicker">クエストクリア！</div>
+      <div class="rank" id="rankName">—</div>
+      <div class="bigscore" id="finalScore">0</div>
+      <div class="note">まもりポイント（最大600）</div>
+      <div class="point" style="text-align:left">💡 全体のまとめ：どの事件も、原因は同じ。<b>利用者の端末から来たものを、作り手が信じすぎた</b>こと。だから「使う人」には見えない穴が生まれました。</div>
+      <div class="recap">
+        <div class="item"><b>① 会員番号の書き換え</b><small>👤 パスワードはサイトごとに変える・二段階認証 ／ 🛠 本人確認をサーバーで</small></div>
+        <div class="item"><b>② 画面の裏側のぞき</b><small>👤 使い回さない・共用PCでログインしない ／ 🛠 表示する項目だけ送る</small></div>
+        <div class="item"><b>③ 暗号のふり見破り</b><small>👤 「🔒」表示だけで信用しない ／ 🛠 base64は暗号ではない</small></div>
+        <div class="item"><b>④ 値段の書き換え</b><small>👤 明細を確認・不具合は使わず知らせる ／ 🛠 大事な値はサーバーが計算</small></div>
+      </div>
+      <div class="fix" style="text-align:left"><b>持ち帰る合言葉：</b>「画面に出さない」「読めない文字にする」は鍵をかけたことにならない。守りたいものは、そもそも端末に渡さないか、サーバーで守る。</div>
+      <button class="btn block" id="restart" type="button">🔄 次の人へ（最初から）</button>
+      <div class="foot">これは“わざと弱く作った”練習用の箱庭です。学んだ操作を現実の他人のサイトに試すのは不正アクセスにあたります。通信はこのPCの中だけを通り、外部・クラウドには出ません。会員データはすべて架空です。</div>
+    </div>
+  </section>
+
+  <!-- ===== ゲーム②：ロビー ===== -->
+  <section id="scCardLobby" class="panel" hidden>
+    <button class="back" type="button" data-home>← ホームへ</button>
+    <div><div class="kicker">ゲーム② ・ のぞき見チャレンジ</div><h2>2台をつないで対戦しよう</h2></div>
+    <p class="lead">同じ<b>あいことば</b>を入れた2台が、この<button class="term" data-term="localhost">localhost</button>（このPCの中）だけでつながります。片方がトランプを出し、もう片方が当てる…はずが、出したカードは相手の端末に<b>こっそり届いて</b>います。画面では裏向きでも、中身は届いている――それを体験するゲームです。</p>
+    <div class="guide"><span class="hand">👇</span><span>① 名前 → ② あいことば を入れて、③「対戦にはいる」を押してね</span></div>
+    <label class="fld"><span><b class="stepno">①</b> あなたの名前</span><input class="ti" id="cname" maxlength="12" placeholder="例：ゆうき" autocomplete="off"></label>
+    <label class="fld"><span><b class="stepno">②</b> あいことば（2台で同じ言葉）</span><input class="ti" id="croom" maxlength="24" placeholder="例：さくら2026" autocomplete="off"></label>
+    <button class="btn block" id="cjoin" type="button" disabled>③ 対戦にはいる</button>
+    <p class="note">出展では、出展者のPC（<button class="term" data-term="localhost">localhost</button>）と来場者のスマホで同じあいことばを入れる使い方がおすすめ。PC2つのブラウザ（タブ）でも試せます。</p>
+  </section>
+
+  <!-- ===== ゲーム②：対戦 ===== -->
+  <section id="scCardPlay" class="panel" hidden>
+    <button class="back" type="button" id="cardLeave">← やめてホームへ</button>
+    <div class="statusbar"><span class="dot" id="cdot"></span><span id="cstat">接続中…</span></div>
+    <div class="whatbar" id="cwhatbar" hidden><span id="cwhat"></span></div>
+    <div id="cstage"></div>
+  </section>
+</div>
+
+<!-- 用語ボトムシート -->
+<div class="sheet" id="sheet" hidden><div class="sheetCard">
+  <h3 id="sheetT"></h3><p id="sheetD"></p>
+  <button class="btn sub block" id="sheetClose" type="button">閉じる</button>
+</div></div>
+
+<!-- 読み込む順番に意味があります（後のファイルが前のファイルの関数を使うため） -->
+<script src="client/js/common.js"></script>   <!-- 共通の小道具 -->
+<script src="client/js/terms.js"></script>    <!-- 用語辞典・用語シート -->
+<script src="client/js/guide.js"></script>    <!-- 「次はここを押してね」案内 -->
+<script src="client/js/screens.js"></script>  <!-- 画面遷移 -->
+<script src="client/js/confetti.js"></script> <!-- 紙吹雪 -->
+<script src="client/js/quest.js"></script>    <!-- ゲーム① 情報まもりクエスト -->
+<script src="client/js/card.js"></script>     <!-- ゲーム② のぞき見チャレンジ -->
+</body>
+</html>
